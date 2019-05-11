@@ -23,6 +23,15 @@ body{
   font-family: gameFont;
   font-size: 3em;
   color: #DCFF0E;
+  /*DCFF0E*/
+  width: 100%;
+}
+
+.titulo-fin{
+  font-family: gameFont;
+  font-size: 3em;
+  color: #DCFF0E;
+  /*DCFF0E*/
   width: 100%;
 }
 
@@ -31,9 +40,10 @@ body{
   border: 10px solid #E87306;
   background: rgba(232, 115, 6, 0.5);
   border-radius: 5px;
-  height:auto;
+  height: 700px;
   display: flex;
   flex-flow: row wrap;
+  z-index:-1;
 }
 
 .panel-score{
@@ -42,6 +52,8 @@ body{
   display: flex;
   flex-flow: column nowrap;
   justify-content: space-between;
+  z-index:2;
+  margin-right: 0px!important;
 }
 
 
