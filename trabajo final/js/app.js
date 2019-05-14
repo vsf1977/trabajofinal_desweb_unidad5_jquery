@@ -9,17 +9,40 @@ $(document).ready(function()
     cambio_color()
     llenar_tablero()       
     
-    $(".btn-reinicio").on("click", function(){
+    $(".btn-reinicio").on("click", function()
+    {
         cronometro()
-        verificar_items_iguales()
-        borrar_iguales()
+        if ($(".btn-reinicio").text() == "Reiniciar") 
+        {
+            eliminarCaramelos();
+        }
     })
-
-
 });
 
+//con esta funcion se agrupa la verificacion borrado y ordenado para poder ejecutarlas de nuevo 
+//en caso de que se encuentren caramelos repetidos
+function eliminarCaramelos() 
+{
+    verificar_items_iguales()
+    borrar_iguales()
+    ordenar_matriz()
+    setTimeout(function() {
+        rellenar_matriz()
+            //elimiarCaramelos()
+    }, 3000)
+    setTimeout(function() 
+    {
+        if (verificar_items_iguales()) 
+        {
+            eliminarCaramelos()
+            console.log('de nuevo');
+        }
+    }, 6500)
+}
 
 
+
+//para cambiar el color del titulo indefinidamente
 function cambio_color()
 {
     var letrero = $(".main-titulo")
@@ -32,8 +55,8 @@ function cambio_color()
 }
 
 
-
-function animacion_fin_coluego()
+//animacion cuando se acaba el juego por tiempo
+function animacion_fin_juego()
 { 
     $(".panel-tablero").hide(2000)
 
@@ -42,7 +65,7 @@ function animacion_fin_coluego()
 }
 
 
-function animacion_inicio_coluego()
+function animacion_inicio_juego()
 {
         
     $(".panel-tablero").toggle( "slide",2000)
@@ -50,18 +73,17 @@ function animacion_inicio_coluego()
 }
 
 
-
+//aleatoriamente se escogen las imagenes y se cargan. En paralelo hay una matriz con los numeros de las imagenes
 function llenar_tablero()
 {        
+    tablero = Array()
+    tablero_check = Array()
     for (var col=1;col<8;col++)
     {
         for (var fil=1;fil<8;fil++)
         {      
             var numero = Math.floor((Math.random() * 4) + 1)            
-            if (fil < 8)
-            {
-                columna[fil-1]=numero     
-            }
+            columna[fil-1]=numero     
             $(".col-"+col).append("<img class='elemento' src='" + "image/" + numero + ".png" + "'>")            
             $(".elemento").last().addClass("item-"+col+"-"+fil)
             $(".elemento").last().hide()
@@ -71,7 +93,8 @@ function llenar_tablero()
         tablero.push(columna)                
         columna = []
     }
-
+    
+    //copia de la matriz para calculos
     for (var col=1;col<8;col++)
     {
         for (var fil=1;fil<8;fil++)
@@ -84,22 +107,22 @@ function llenar_tablero()
         tablero_check.push(columna)                
         columna = []
     }
-
 }
 
-
+//verifica items iguales y coloca cero para esconder las imagenes
 function verificar_items_iguales()
-{   
-    
+{       
+    var aux = false
     for (var col=0;col<7;col++)
     {
-        for (var fil=1;fil<7;fil++)
+        for (var fil=1;fil<6;fil++)
         {          
-            if ((tablero[col][fil] == tablero[col][fil+1]) && (tablero[col][fil] == tablero[col][fil-1]))
+            if (tablero[col][fil] == tablero[col][fil+1] && tablero[col][fil] == tablero[col][fil-1])
             {
                 tablero_check[col][fil] = 0                                
                 tablero_check[col][fil+1] = 0                                
-                tablero_check[col][fil-1] = 0                                
+                tablero_check[col][fil-1] = 0   
+                aux = true                             
             }
         }
     }    
@@ -108,40 +131,113 @@ function verificar_items_iguales()
     {
         for (var col=1;col<6;col++)
         {          
-            if ((tablero[col][fil] == tablero[col+1][fil]) && (tablero[col][fil] == tablero[col-1][fil]))
+            if (tablero[col][fil] == tablero[col+1][fil] && tablero[col][fil] == tablero[col-1][fil])
             {
                 tablero_check[col][fil] = 0                                
                 tablero_check[col+1][fil] = 0                                
-                tablero_check[col-1][fil] = 0                                
+                tablero_check[col-1][fil] = 0  
+                aux = true                  
             }
         }
-    }     
+    } 
+    return aux 
 }
 
-
+//si la celda de la matriz es cero, esconde su correspondiente en el tablero HTML
 function borrar_iguales()
 {
     for (var col=1;col<8;col++)
     {
         for (var fil=1;fil<8;fil++)
         {      
-            if (fil < 8)
-            {
-                if (tablero_check[col-1][fil-1] == 0)
-                {                    
-                    for (var x=1;x<4;x++)
-                    {
-                        $(".item-"+col+"-"+fil).fadeOut(200)
-                        $(".item-"+col+"-"+fil).fadeIn(200)
-                    }                    
-                    $(".item-"+col+"-"+fil).hide(500)
-                    puntuacion = puntuacion + 10;
-                    $("#score-text").text(puntuacion)                   
+            if (tablero_check[col-1][fil-1] == 0)
+            {                    
+                for (var x=1;x<3;x++)
+                {
+                    $(".item-"+col+"-"+fil).fadeOut(500)
+                    $(".item-"+col+"-"+fil).fadeIn(500)
+                }                    
+                $(".item-"+col+"-"+fil).hide(500)                                       
+                puntuacion = puntuacion + 10;
+                $("#score-text").text(puntuacion)                   
+            }                
+        }
+    }   
+}
+
+
+//para que los valores que son ceros(dulces borrados) queden arriba y poder colocar items en su lugar
+function ordenar_matriz()
+{
+    var temp = 0
+    var sw = true
+    var fil = 2    
+    for (var col=1;col<8;col++)
+    {
+        sw = true
+        while (sw)
+        {
+            sw = false
+            for (var fil=2;fil<8;fil++)
+            {      
+                if (tablero_check[col-1][fil-1] == 0 && tablero_check[col-1][fil-2] > 0)
+                {     
+                    temp = tablero_check[col-1][fil-1]
+                    tablero_check[col-1][fil-1] = tablero_check[col-1][fil-2]
+                    tablero_check[col-1][fil-2] = temp
+                    sw = true
                 }
-            }           
+            }
         }
     }
+    tablero=tablero_check
 }
+
+//nuevas figuras en los espacios en blanco(ceros en la matriz)
+
+function rellenar_matriz()
+{    
+    var numero = 0
+    for (var col=1;col<8;col++)
+    {
+        for (var fil=1;fil<8;fil++)
+        {      
+            if (tablero_check[col-1][fil-1] == 0)
+            {  
+                $(".item-"+col+"-"+fil).hide()            
+            }
+            else
+            {
+                numero=tablero_check[col-1][fil-1]
+                $(".item-"+col+"-"+fil).attr("src","image/" + numero + ".png" ) 
+                $(".item-"+col+"-"+fil).show()
+            }
+        }
+    }
+    
+    for (var col=1;col<8;col++)
+    {
+        for (var fil=1;fil<8;fil++)
+        {      
+            if (tablero_check[col-1][fil-1] == 0)
+            {  
+                numero = Math.floor((Math.random() * 4) + 1)            
+                tablero_check[col-1][fil-1]=numero   
+                $(".item-"+col+"-"+fil).attr("src","image/" + numero + ".png" )    
+                animar($(".item-"+col+"-"+fil),(fil-1))                                          
+            }            
+        }        
+    }
+}
+
+
+function animar(elemento,posfinal)
+{
+    elemento.offset({top: -600})           
+    elemento.show()
+    elemento.animate({top:posfinal},2500)       
+}
+
 
 
 function animacion_limpiar_tablero()
@@ -207,7 +303,7 @@ function cronometro()
             $(".btn-reinicio").text("Iniciar")
             clearInterval(tiempo_corriendo)            
             limpiar_tablero()
-            animacion_fin_coluego()       
+            animacion_fin_juego()       
             //setTimeout(animacion_fin_coluego(),6000)
             //var v = setTimeout(animacion_inicio_coluego(),60000)
             //clearTimeout(v);
@@ -226,6 +322,8 @@ function cronometro()
         tiempo_corriendo = null
         limpiar_tablero()
         llenar_tablero()
+        puntuacion = 0
+        $("#score-text").text(0)           
         fin = false
     }
 
