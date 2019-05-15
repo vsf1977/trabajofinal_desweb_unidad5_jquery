@@ -42,8 +42,7 @@ body{
   border-radius: 5px;
   height: 700px;
   display: flex;
-  flex-flow: row wrap;
-  z-index:-1;
+  flex-flow: row wrap;  
 }
 
 .panel-score{

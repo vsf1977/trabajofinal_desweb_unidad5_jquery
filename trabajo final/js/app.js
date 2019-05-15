@@ -3,43 +3,80 @@ var tablero_check = Array()
 var columna = []
 var tiempo_corriendo = null
 var puntuacion = 0
+var movimientos = 0
 
 $(document).ready(function()
 {
     cambio_color()
-    llenar_tablero()       
-    
+    llenar_tablero()      
+
+    $(".imgBox").draggable({ disabled: true });  
+
     $(".btn-reinicio").on("click", function()
     {
         cronometro()
         if ($(".btn-reinicio").text() == "Reiniciar") 
         {
-            eliminarCaramelos();
+            jugar();
         }
     })
+
+    $(".imgBox").droppable({
+        accept: ".imgBox",
+        drop: function(event, ui){
+          var imagendrag = $(ui.draggable).find("img").attr("src")
+          var imagendrop = $(event.target).find("img").attr("src")
+          var clasedrop = $(event.target).find("img").attr("class")
+          var clasedrag = $(ui.draggable).find("img").attr("class")
+          var coldrag = clasedrag.substr(14,1)
+          var fildrag = clasedrag.substr(16,1)
+          var coldrop = clasedrop.substr(14,1)
+          var fildrop = clasedrop.substr(16,1)
+          if ((Math.abs(coldrag-coldrop) <= 1 && fildrag == fildrop) || (Math.abs(fildrag-fildrop) <= 1 && coldrag == coldrop))
+          {
+            var temp = tablero[coldrop-1][fildrop-1] 
+            tablero[coldrop-1][fildrop-1] = tablero[coldrag-1][fildrag-1]
+            tablero[coldrag-1][fildrag-1] = temp
+            var temp = tablero_check[coldrop-1][fildrop-1] 
+            tablero_check[coldrop-1][fildrop-1] = tablero_check[coldrag-1][fildrag-1]
+            tablero_check[coldrag-1][fildrag-1] = temp
+            $(event.target).find("img").attr("src",imagendrag)
+            $(ui.draggable).find("img").attr("src",imagendrop)   
+            movimientos +=1
+            $("#movimientos-text").text(movimientos)               
+            $(".imgBox").draggable({ disabled: true });  
+            setTimeout(function()           
+            {
+                jugar()    
+            }, 1000)
+        }
+        }
+      })
 });
 
 //con esta funcion se agrupa la verificacion borrado y ordenado para poder ejecutarlas de nuevo 
 //en caso de que se encuentren caramelos repetidos
-function eliminarCaramelos() 
+function jugar() 
 {
-    verificar_items_iguales()
+    var v = verificar_items_iguales()
     borrar_iguales()
     ordenar_matriz()
-    setTimeout(function() {
-        rellenar_matriz()
-            //elimiarCaramelos()
+    setTimeout(function() 
+    {
+        rellenar_matriz()    
     }, 3000)
     setTimeout(function() 
     {
-        if (verificar_items_iguales()) 
+        if (v) 
         {
-            eliminarCaramelos()
-            console.log('de nuevo');
+            jugar()
+        }
+        else
+        {
+            $(".imgBox").draggable({disabled: false, revert: true});  
         }
     }, 6500)
 }
-
 
 
 //para cambiar el color del titulo indefinidamente
@@ -59,17 +96,14 @@ function cambio_color()
 function animacion_fin_juego()
 { 
     $(".panel-tablero").hide(2000)
-
-    $(".panel-score").animate({width:"100%"},{queue : true, duration : 2235})
-
+    $(".panel-score").animate({width:"100%"},{queue : false, duration : 2235})
 }
 
 
 function animacion_inicio_juego()
-{
-        
-    $(".panel-tablero").toggle( "slide",2000)
-    $(".panel-score").animate({width:"25%"},{queue : true, duration : 2200})    
+{   
+    $(".panel-tablero").show(2000)
+    $(".panel-score").animate({width:"25%"},{queue : false, duration : 2235})
 }
 
 
@@ -84,7 +118,7 @@ function llenar_tablero()
         {      
             var numero = Math.floor((Math.random() * 4) + 1)            
             columna[fil-1]=numero     
-            $(".col-"+col).append("<img class='elemento' src='" + "image/" + numero + ".png" + "'>")            
+            $(".col-"+col).append("<div class= 'imgBox'> <img class='elemento' src='" + "image/" + numero + ".png" + "'> </div>")            
             $(".elemento").last().addClass("item-"+col+"-"+fil)
             $(".elemento").last().hide()
             $(".elemento").last().show("slow")
@@ -99,10 +133,7 @@ function llenar_tablero()
     {
         for (var fil=1;fil<8;fil++)
         {      
-            if (fil < 8)
-            {
-                columna[fil-1]=tablero[col-1][fil-1]     
-            }           
+            columna[fil-1]=tablero[col-1][fil-1]     
         }
         tablero_check.push(columna)                
         columna = []
@@ -140,7 +171,7 @@ function verificar_items_iguales()
             }
         }
     } 
-    return aux 
+    return aux     
 }
 
 //si la celda de la matriz es cero, esconde su correspondiente en el tablero HTML
@@ -154,10 +185,10 @@ function borrar_iguales()
             {                    
                 for (var x=1;x<3;x++)
                 {
-                    $(".item-"+col+"-"+fil).fadeOut(500)
-                    $(".item-"+col+"-"+fil).fadeIn(500)
+                    $(".item-"+col+"-"+fil).parent().fadeOut(500)
+                    $(".item-"+col+"-"+fil).parent().fadeIn(500)
                 }                    
-                $(".item-"+col+"-"+fil).hide(500)                                       
+                $(".item-"+col+"-"+fil).parent().hide(500)                                       
                 puntuacion = puntuacion + 10;
                 $("#score-text").text(puntuacion)                   
             }                
@@ -171,7 +202,6 @@ function ordenar_matriz()
 {
     var temp = 0
     var sw = true
-    var fil = 2    
     for (var col=1;col<8;col++)
     {
         sw = true
@@ -189,8 +219,7 @@ function ordenar_matriz()
                 }
             }
         }
-    }
-    tablero=tablero_check
+    }   
 }
 
 //nuevas figuras en los espacios en blanco(ceros en la matriz)
@@ -204,13 +233,13 @@ function rellenar_matriz()
         {      
             if (tablero_check[col-1][fil-1] == 0)
             {  
-                $(".item-"+col+"-"+fil).hide()            
+                $(".item-"+col+"-"+fil).parent().hide()            
             }
             else
             {
                 numero=tablero_check[col-1][fil-1]
                 $(".item-"+col+"-"+fil).attr("src","image/" + numero + ".png" ) 
-                $(".item-"+col+"-"+fil).show()
+                $(".item-"+col+"-"+fil).parent().show()
             }
         }
     }
@@ -224,10 +253,23 @@ function rellenar_matriz()
                 numero = Math.floor((Math.random() * 4) + 1)            
                 tablero_check[col-1][fil-1]=numero   
                 $(".item-"+col+"-"+fil).attr("src","image/" + numero + ".png" )    
-                animar($(".item-"+col+"-"+fil),(fil-1))                                          
+                animar($(".item-"+col+"-"+fil).parent(),(fil-1))                                          
             }            
         }        
     }
+
+    columna = []
+    tablero = Array()
+    for (var col=1;col<8;col++)
+    {
+        for (var fil=1;fil<8;fil++)
+        {      
+            columna[fil-1]=tablero_check[col-1][fil-1]     
+        }
+        tablero.push(columna)                
+        columna = []
+    }
+    
 }
 
 
@@ -237,20 +279,6 @@ function animar(elemento,posfinal)
     elemento.show()
     elemento.animate({top:posfinal},2500)       
 }
-
-
-
-function animacion_limpiar_tablero()
-{        
-    for (var col=1;col<8;col++)
-    {
-        for (var fil=1;fil<8;fil++)
-        {      
-            $("."+col+"-"+fil).hide(1000)            
-        }
-    }    
-}
-
 
 
 
@@ -303,16 +331,17 @@ function cronometro()
             $(".btn-reinicio").text("Iniciar")
             clearInterval(tiempo_corriendo)            
             limpiar_tablero()
-            animacion_fin_juego()       
-            //setTimeout(animacion_fin_coluego(),6000)
-            //var v = setTimeout(animacion_inicio_coluego(),60000)
-            //clearTimeout(v);
+            animacion_fin_juego()  /*
+            setTimeout(function() 
+            {
+                rellenar_matriz()    
+            }, 7000)     */
         }
         if (!fin)
         {
             pant.text(texto)
         }
-        }, 1000);
+        }, 10);
     }
     else
     {
@@ -323,6 +352,8 @@ function cronometro()
         limpiar_tablero()
         llenar_tablero()
         puntuacion = 0
+        movimientos = 0
+        $("#movimientos-text").text(0) 
         $("#score-text").text(0)           
         fin = false
     }
