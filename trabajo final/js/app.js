@@ -8,9 +8,8 @@ var movimientos = 0
 $(document).ready(function()
 {
     cambio_color()
-    llenar_tablero()      
-
-    $(".imgBox").draggable({ disabled: true });  
+    llenar_tablero()  
+    
 
     $(".btn-reinicio").on("click", function()
     {
@@ -43,8 +42,7 @@ $(document).ready(function()
             $(event.target).find("img").attr("src",imagendrag)
             $(ui.draggable).find("img").attr("src",imagendrop)   
             movimientos +=1
-            $("#movimientos-text").text(movimientos)               
-            $(".imgBox").draggable({ disabled: true });  
+            $("#movimientos-text").text(movimientos)                 
             setTimeout(function()           
             {
                 jugar()    
@@ -58,24 +56,27 @@ $(document).ready(function()
 //en caso de que se encuentren caramelos repetidos
 function jugar() 
 {
-    var v = verificar_items_iguales()
-    borrar_iguales()
-    ordenar_matriz()
-    setTimeout(function() 
+    if ($(".btn-reinicio").text() == "Reiniciar")    
     {
-        rellenar_matriz()    
-    }, 3000)
-    setTimeout(function() 
-    {
-        if (v) 
+        var v = verificar_items_iguales()
+        borrar_iguales()
+        ordenar_matriz()
+        setTimeout(function() 
         {
-            jugar()
-        }
-        else
+            rellenar_matriz()    
+        }, 3000)
+        setTimeout(function() 
         {
-            $(".imgBox").draggable({disabled: false, revert: true});  
-        }
-    }, 6500)
+            if (v) 
+            {
+                jugar()
+            }
+            else
+            {
+                $(".imgBox").draggable({disabled: false, revert: true});  
+            }
+        }, 6500)
+    }
 }
 
 
@@ -97,15 +98,8 @@ function animacion_fin_juego()
 { 
     $(".panel-tablero").hide(2000)
     $(".panel-score").animate({width:"100%"},{queue : false, duration : 2235})
+    $(".end-titulo").slideDown(2000)        
 }
-
-
-function animacion_inicio_juego()
-{   
-    $(".panel-tablero").show(2000)
-    $(".panel-score").animate({width:"25%"},{queue : false, duration : 2235})
-}
-
 
 //aleatoriamente se escogen las imagenes y se cargan. En paralelo hay una matriz con los numeros de las imagenes
 function llenar_tablero()
@@ -295,8 +289,7 @@ function limpiar_tablero()
 function cronometro()
 {
     var texto = ""
-    var fin = false
-    
+    var fin = false    
     var pant = $("#timer")
         
     if ($(".btn-reinicio").text() == "Iniciar")    
@@ -331,17 +324,17 @@ function cronometro()
             $(".btn-reinicio").text("Iniciar")
             clearInterval(tiempo_corriendo)            
             limpiar_tablero()
-            animacion_fin_juego()  /*
+            animacion_fin_juego()  
             setTimeout(function() 
             {
-                rellenar_matriz()    
-            }, 7000)     */
+                location.reload()    
+            }, 7000)     
         }
         if (!fin)
         {
             pant.text(texto)
         }
-        }, 10);
+        }, 1000);
     }
     else
     {

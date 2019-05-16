@@ -19,13 +19,19 @@ body{
   justify-content: space-between;
 }
 
-.main-titulo{
+.main-titulo, .end-titulo{
   font-family: gameFont;
   font-size: 3em;
   color: #DCFF0E;
   /*DCFF0E*/
   width: 100%;
 }
+
+.end-titulo{
+  display: none;
+  text-align: center;
+}
+
 
 .titulo-fin{
   font-family: gameFont;
@@ -42,7 +48,7 @@ body{
   border-radius: 5px;
   height: 700px;
   display: flex;
-  flex-flow: row wrap;  
+  flex-flow: row wrap;
 }
 
 .panel-score{
